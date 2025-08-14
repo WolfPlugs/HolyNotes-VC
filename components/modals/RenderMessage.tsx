@@ -29,7 +29,7 @@ export const RenderMessage = ({
 }) => {
     const ChannelMessage = findComponentByCodeLazy("Message must not be a thread");
     const { message, groupStart, cozyMessage } = findByProps("cozyMessage");
-    const User = findByCode("isClyde(){");
+    const User = findByCode("isVerifiedBot(){");
     const Message = findByCode("isEdited(){");
     const Channel = findByCodeLazy("computeLurkerPermissionsAllowList");
 
