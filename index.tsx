@@ -27,7 +27,7 @@ import { openModal } from "@utils/modal";
 import definePlugin from "@utils/types";
 import { findByProps, findExportedComponentLazy } from "@webpack";
 import { ChannelStore, Menu } from "@webpack/common";
-import { Message } from "discord-types/general";
+import { Message } from "@vencord/discord-types";
 
 import { Popover as NoteButtonPopover, Popover } from "./components/icons/NoteButton";
 import { NoteModal } from "./components/modals/Notebook";
