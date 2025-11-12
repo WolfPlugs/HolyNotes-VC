@@ -5,7 +5,7 @@
  */
 
 import { classes } from "@utils/misc";
-import { findByCode, findByCodeLazy } from "@webpack";
+import { findByCodeLazy } from "@webpack";
 import { Button, Clickable, Menu, Popout, React } from "@webpack/common";
 
 import { SvgOverFlowIcon } from "../icons/overFlowIcon";
