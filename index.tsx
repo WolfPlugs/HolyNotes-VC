@@ -75,7 +75,7 @@ export default definePlugin({
 
     patches: [
         {
-            find: "toolbar:function",
+            find: ".controlButtonWrapper,",
             replacement: {
                 match: /(function \i\(\i\){)(.{1,200}toolbar.{1,100}mobileToolbar)/,
                 replace: "$1$self.toolbarAction(arguments[0]);$2"
