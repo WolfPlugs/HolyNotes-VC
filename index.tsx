@@ -23,11 +23,10 @@ import { DataStore } from "@api/index";
 import { addMessagePopoverButton, removeMessagePopoverButton } from "@api/MessagePopover";
 import ErrorBoundary from "@components/ErrorBoundary";
 import { classes } from "@utils/misc";
-import { openModal } from "@utils/modal";
 import definePlugin from "@utils/types";
 import { Message } from "@vencord/discord-types";
-import { findByProps, findExportedComponentLazy } from "@webpack";
-import { ChannelStore, Menu } from "@webpack/common";
+import { findCssClasses, findExportedComponentLazy } from "@webpack";
+import { ChannelStore, Menu, openModal } from "@webpack/common";
 
 import { Popover as NoteButtonPopover, Popover } from "./components/icons/NoteButton";
 import { NoteModal } from "./components/modals/Notebook";
@@ -52,7 +51,7 @@ const messageContextMenuPatch: NavContextMenuPatchCallback = async (children, { 
 };
 
 function ToolBarHeader() {
-    const iconClasses = findByProps("iconWrapper", "clickable");
+    const iconClasses = findCssClasses("iconWrapper", "clickable");
 
     return (
         <ErrorBoundary noop={true}>
@@ -76,12 +75,12 @@ export default definePlugin({
 
     patches: [
         {
-            find: ".controlButtonWrapper,",
+            find: /toolbar:\i,mobileToolbar:\i/,
             replacement: {
                 match: /(function \i\(\i\){)(.{1,200}toolbar.{1,100}mobileToolbar)/,
                 replace: "$1$self.toolbarAction(arguments[0]);$2"
             }
-        }
+        },
     ],
 
     toolboxActions: {
@@ -94,9 +93,9 @@ export default definePlugin({
         "message": messageContextMenuPatch
     },
 
-    toolbarAction(e) {
+    toolbarAction(e: { toolbar: React.ReactNode[] | React.ReactNode; }) {
         if (Array.isArray(e.toolbar))
-            return e.toolbar.push(
+            return e.toolbar.unshift(
                 <ErrorBoundary key={this.name} noop={true}>
                     <ToolBarHeader />
                 </ErrorBoundary>

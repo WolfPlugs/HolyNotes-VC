@@ -38,7 +38,7 @@ $modifier: var(--background-modifier-accent);
     overflow: hidden;
 }
 
-.vc-notebook-flex .vc-help-icon {
+.vc-help-icon {
     width: 23px;
     opacity: 0.5;
     cursor: pointer;
@@ -55,6 +55,12 @@ $modifier: var(--background-modifier-accent);
 .vc-notebook-display-left {
     flex: auto;
     display: flex;
+    gap: 10px;
+    align-items: center;
+
+    > :last-child {
+        max-width: 33%;
+    }
 }
 
 .vc-help-markdown {
@@ -101,7 +107,7 @@ $modifier: var(--background-modifier-accent);
 
 .vc-notebook-tabbar-container {
     border-bottom: 1px solid var(--profile-body-divider-color);
-    margin: 20px 12px 0;
+    margin: 10px 10px 0;
     padding: 0;
 }
 

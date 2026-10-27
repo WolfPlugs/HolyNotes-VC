@@ -8,16 +8,16 @@ import { BaseText } from "@components/BaseText";
 import ErrorBoundary from "@components/ErrorBoundary";
 import { Flex } from "@components/Flex";
 import { classes } from "@utils/misc";
-import { ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalProps, ModalRoot, ModalSize, openModal } from "@utils/modal";
-import { findCssClasses } from "@webpack";
-import { ContextMenuApi, FluxDispatcher, Menu, React, TextInput } from "@webpack/common";
+import { RenderModalProps } from "@vencord/discord-types";
+import { Modal, openModal, React, Select, TextInput } from "@webpack/common";
 
 import noteHandler from "../../NoteHandler";
 import { HolyNotes } from "../../types";
 import HelpIcon from "../icons/HelpIcon";
 import Errors from "./Error";
 import HelpModal from "./HelpModal";
-import ManageNotebookButton from "./ManageNotebookButton";
+import NotebookCreateModal from "./NotebookCreateModal";
+import NotebookDeleteModal from "./NotebookDeleteModal";
 import { CreateTabBar } from "./NoteBookTab";
 import { RenderMessage } from "./RenderMessage";
 
@@ -59,20 +59,26 @@ const renderNotebook = ({
 };
 
 
+enum SortingEnum {
+    AscendingDateAdded = "ada",
+    AscendingMessageDate = "amd",
+    DescendingDateAdded = "dda",
+    DescendingMessageDate = "dmd",
+}
 
-export const NoteModal = (props: ModalProps & { onClose: () => void; }) => {
+
+export const NoteModal = (props: RenderModalProps) => {
+    const [sortingSelection, setSortingSelection] = React.useState(SortingEnum.AscendingDateAdded);
+    const [sortDirection, setSortDirection] = React.useState(true);
     const [sortType, setSortType] = React.useState(true);
     const [searchInput, setSearch] = React.useState("");
-    const [sortDirection, setSortDirection] = React.useState(true);
     const [currentNotebook, setCurrentNotebook] = React.useState("Main");
 
-    const {
-        quickSelect,
-        quickSelectLabel,
-        quickSelectClick,
-        quickSelectValue,
-        quickSelectArrow
-    } = findCssClasses("quickSelect", "quickSelectLabel", "quickSelectValue", "quickSelectArrow", "quickSelectClick");
+    const changeSorting = (value: SortingEnum) => {
+        setSortDirection(value === SortingEnum.AscendingDateAdded || value === SortingEnum.AscendingMessageDate);
+        setSortType(value === SortingEnum.AscendingDateAdded || value === SortingEnum.DescendingDateAdded);
+        setSortingSelection(value);
+    };
 
     const forceUpdate = React.useReducer(() => ({}), {})[1] as () => void;
 
@@ -80,13 +86,16 @@ export const NoteModal = (props: ModalProps & { onClose: () => void; }) => {
     if (!notes) return <></>;
 
     const { TabBar, selectedTab } = CreateTabBar({ tabs: noteHandler.getAllNotes(), firstSelectedTab: currentNotebook, onChangeTab: setCurrentNotebook });
+    const isNotMain = currentNotebook !== "Main";
 
     return (
         <ErrorBoundary>
-            <ModalRoot {...props} className={classes("vc-notebook")} size={ModalSize.LARGE}>
-                <Flex className={classes("vc-notebook-flex")} flexDirection="column" style={{ width: "100%" }}>
-                    <div className={classes("vc-notebook-top-section")}>
-                        <ModalHeader className={classes("vc-notebook-header-main")}>
+            <Modal
+                {...props}
+                size="xl"
+                title={
+                    <div>
+                        <Flex flexDirection="row" alignItems="center">
                             <BaseText
                                 size="lg"
                                 weight="semibold"
@@ -97,91 +106,58 @@ export const NoteModal = (props: ModalProps & { onClose: () => void; }) => {
                             <div className={classes("vc-notebook-flex", "vc-help-icon")} onClick={() => openModal(HelpModal)}>
                                 <HelpIcon />
                             </div>
-                            <div style={{ marginBottom: "10px" }} className={classes("vc-notebook-search")}>
+                            <div className={classes("vc-notebook-search")}>
                                 <TextInput
                                     autoFocus={false}
                                     placeholder="Search for a message..."
                                     onChange={e => setSearch(e)}
                                 />
                             </div>
-                            <ModalCloseButton onClick={props.onClose} />
-                        </ModalHeader>
+                        </Flex>
                         <div className={classes("vc-notebook-tabbar-container")}>
                             {TabBar}
                         </div>
                     </div>
-                    <ModalContent style={{ marginTop: "20px" }}>
-                        <ErrorBoundary>
-                            {renderNotebook({
-                                notes,
-                                notebook: currentNotebook,
-                                updateParent: () => forceUpdate(),
-                                sortDirection: sortDirection,
-                                sortType: sortType,
-                                searchInput: searchInput,
-                                closeModal: props.onClose,
-                            })}
-                        </ErrorBoundary>
-                    </ModalContent>
-                </Flex>
-                <ModalFooter>
-                    <ManageNotebookButton notebook={currentNotebook} setNotebook={setCurrentNotebook} />
+                }
+                actions={[
+                    {
+                        text: isNotMain ? "Delete Notebook" : "Create Notebook",
+                        variant: isNotMain ? "critical-primary" : "primary",
+                        onClick: isNotMain
+                            ? () => openModal(props => <NotebookDeleteModal {...props} notebook={currentNotebook} onChangeTab={setCurrentNotebook} />)
+                            : () => openModal(props => <NotebookCreateModal {...props} />),
+                    },
+                ]}
+                actionBarInput={
                     <div className={classes("sort-button-container", "vc-notebook-display-left")}>
-                        <Flex
-                            alignItems="center"
-                            className={quickSelect}
-                            onClick={(event: React.MouseEvent<HTMLDivElement>) => {
-                                ContextMenuApi.openContextMenu(event, () => (
-                                    <Menu.Menu
-                                        navId="sort-menu"
-                                        onClose={() => FluxDispatcher.dispatch({ type: "CONTEXT_MENU_CLOSE" })}
-                                        aria-label="Sort Menu"
-                                    >
-                                        <Menu.MenuItem
-                                            label="Ascending / Date Added"
-                                            id="ada"
-                                            action={() => {
-                                                setSortDirection(true);
-                                                setSortType(true);
-                                            }} /><Menu.MenuItem
-                                            label="Ascending / Message Date"
-                                            id="amd"
-                                            action={() => {
-                                                setSortDirection(true);
-                                                setSortType(false);
-                                            }} /><Menu.MenuItem
-                                            label="Descending / Date Added"
-                                            id="dda"
-                                            action={() => {
-                                                setSortDirection(false);
-                                                setSortType(true);
-                                            }} /><Menu.MenuItem
-                                            label="Descending / Message Date"
-                                            id="dmd"
-                                            action={() => {
-                                                setSortDirection(false);
-                                                setSortType(false);
-                                            }} />
-                                    </Menu.Menu>
-
-                                ));
-                            }}
-                        >
-                            <BaseText className={quickSelectLabel}>Change Sorting:</BaseText>
-                            <Flex
-                                alignItems="center"
-                                className={quickSelectClick} // TODO: confirmar
-                            >
-                                <BaseText className={quickSelectValue}>
-                                    {sortDirection ? "Ascending" : "Descending"} /{" "}
-                                    {sortType ? "Date Added" : "Message Date"}
-                                </BaseText>
-                                <div className={quickSelectArrow} />
-                            </Flex>
-                        </Flex>
+                        <BaseText>Change Sorting:</BaseText>
+                        <Select
+                            options={[
+                                { label: "Ascending / Date Added", value: SortingEnum.AscendingDateAdded },
+                                { label: "Ascending / Message Date", value: SortingEnum.AscendingMessageDate },
+                                { label: "Descending / Date Added", value: SortingEnum.DescendingDateAdded },
+                                { label: "Descending / Message Date", value: SortingEnum.DescendingMessageDate },
+                            ]}
+                            isSelected={v => v === sortingSelection}
+                            closeOnSelect={true}
+                            select={changeSorting}
+                            serialize={v => v}
+                        />
                     </div>
-                </ModalFooter>
-            </ModalRoot>
+                }
+            >
+                <ErrorBoundary>
+                    {renderNotebook({
+                        notes,
+                        notebook: currentNotebook,
+                        updateParent: () => forceUpdate(),
+                        sortDirection: sortDirection,
+                        sortType: sortType,
+                        searchInput: searchInput,
+                        closeModal: props.onClose,
+                    })}
+                </ErrorBoundary>
+            </Modal>
         </ErrorBoundary>
     );
 };

@@ -6,7 +6,7 @@
 
 import { createStore } from "@api/DataStore";
 import { DataStore } from "@api/index";
-import { Toasts } from "@webpack/common";
+import { showToast } from "@webpack/common";
 
 import noteHandler, { noteHandlerCache } from "./NoteHandler";
 import { HolyNotes } from "./types";
@@ -83,10 +83,9 @@ export async function uploadNotes() {
                     await noteHandler.importNotes(reader.result as unknown as HolyNotes.Note[]);
                 } catch (err) {
                     console.error(err);
-                    Toasts.show({
-                        id: Toasts.genId(),
-                        message: "Invalid JSON.",
-                        type: Toasts.Type.FAILURE,
+                    showToast({
+                        text: "Invalid JSON.",
+                        variant: "critical",
                     });
                 }
             };

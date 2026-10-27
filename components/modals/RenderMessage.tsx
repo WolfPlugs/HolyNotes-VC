@@ -6,7 +6,8 @@
 
 import { copyToClipboard } from "@utils/clipboard";
 import { classes } from "@utils/misc";
-import { ModalProps } from "@utils/modal";
+import { RenderModalProps } from "@vencord/discord-types";
+// import { ModalProps } from "@utils/modal";
 import { findByCode, findByCodeLazy, findComponentByCodeLazy, findCssClasses } from "@webpack";
 import { ContextMenuApi, FluxDispatcher, Menu, NavigationRouter, React } from "@webpack/common";
 
@@ -27,7 +28,25 @@ export const RenderMessage = ({
     fromDeleteModal: boolean;
     closeModal?: () => void;
 }) => {
-    const ChannelMessage = findComponentByCodeLazy("Message must not be a thread");
+    // TODO: clean
+    const ChannelMessage = findComponentByCodeLazy(
+        // Original
+        // "Message must not be a thread",
+
+        // Memo
+        // "POLL_RESULT",
+        "POLL_RESULT", "subscribeToComponentDispatch",
+
+        // Memo
+        // "hideSimpleEmbedContent",
+        // "message", "channel", "compact", "disableInteraction", "previewGuildId",
+
+        // Memo with author
+        // "message", "repliedMessage",
+
+        // Function
+        // "PREMIUM_REFERRAL",
+    );
     const { message, groupStart, cozyMessage } = findCssClasses("message", "groupStart", "cozyMessage");
     const User = findByCode("isVerifiedBot(){");
     const Message = findByCode("isEdited(){");
@@ -89,6 +108,7 @@ export const RenderMessage = ({
                 renderContentOnly={false}
                 // @ts-ignore
                 channel={new Channel({ id: "holy-notes" })}
+                // author={new User({ ...note?.author })}
                 message={
                     new Message(
                         Object.assign(
@@ -115,7 +135,7 @@ export const RenderMessage = ({
 };
 
 const NoteContextMenu = (
-    props: ModalProps & {
+    props: RenderModalProps & {
         updateParent?: () => void;
         notebook: string;
         note: HolyNotes.Note;

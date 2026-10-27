@@ -4,57 +4,49 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { BaseText } from "@components/BaseText";
-import { Button } from "@components/Button";
 import ErrorBoundary from "@components/ErrorBoundary";
-import { ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalProps, ModalRoot, ModalSize } from "@utils/modal";
-import { React } from "@webpack/common";
+import { RenderModalProps } from "@vencord/discord-types";
+import { Modal, React } from "@webpack/common";
 
 import noteHandler from "../../NoteHandler";
 import Error from "./Error";
 import { RenderMessage } from "./RenderMessage";
 
-export default ({ onClose, notebook, onChangeTab, ...props }: ModalProps & { onClose: () => void; notebook: string; onChangeTab: React.Dispatch<React.SetStateAction<string>>; }) => {
+export default ({ notebook, onChangeTab, ...props }: RenderModalProps & { notebook: string; onChangeTab: React.Dispatch<React.SetStateAction<string>>; }) => {
     const notes = noteHandler.getNotes(notebook);
 
     const handleDelete = () => {
-        onClose();
+        props.onClose();
         onChangeTab("Main");
         noteHandler.deleteNotebook(notebook);
     };
 
     return (
-        <ModalRoot
+        <Modal
             {...props}
-            className="vc-delete-notebook"
-            size={ModalSize.LARGE}>
-            <ModalHeader>
-                <BaseText tag="h3">Confirm Deletion</BaseText>
-                <ModalCloseButton onClick={onClose} />
-            </ModalHeader>
-            <ModalContent>
-                <ErrorBoundary>
-                    {notes && Object.keys(notes).length > 0 ? (
-                        Object.values(notes).map(note => (
-                            <RenderMessage
-                                key={note.id}
-                                note={note}
-                                notebook={notebook}
-                                fromDeleteModal={true} />
-                        ))
-                    ) : (
-                        <Error />
-                    )}
-                </ErrorBoundary>
-            </ModalContent>
-            <ModalFooter>
-                <Button
-                    variant="dangerPrimary"
-                    onClick={handleDelete}
-                >
-                    DELETE
-                </Button>
-            </ModalFooter>
-        </ModalRoot>
+            title="Confirm Deletion"
+            size="xl"
+            actions={[
+                {
+                    text: "DELETE",
+                    variant: "critical-primary",
+                    onClick: handleDelete,
+                },
+            ]}
+        >
+            <ErrorBoundary>
+                {notes && Object.keys(notes).length > 0 ? (
+                    Object.values(notes).map(note => (
+                        <RenderMessage
+                            key={note.id}
+                            note={note}
+                            notebook={notebook}
+                            fromDeleteModal={true} />
+                    ))
+                ) : (
+                    <Error />
+                )}
+            </ErrorBoundary>
+        </Modal>
     );
 };
